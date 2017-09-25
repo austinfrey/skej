@@ -2,10 +2,11 @@
 
 const FaaS = require('openfaas');
 const Redular = require('redular');
+const BbPromise = require('bluebird');
 
-const skej = (schedule) => {
-	const {oneOff, recurring, pipe} = schedule
-
+const skej = schedule => {
+	const {invoke, compose} = FaaS('http://localhost:8080');
+	const {single, pipe} = schedule;
 	const options = {
 		autoconfig: true,
 		redis: {
@@ -14,53 +15,62 @@ const skej = (schedule) => {
 		}
 	};
 
-	const faas = FaaS('http://localhost:8080');
 	const redular = new Redular(options);
 
-	const scheduleOneOff = (oneOffList) => {
-		const date = new Date()
+	const invokeFuncs = list => {
+		return new BbPromise.each(list, func => {
+			const date = new Date();
+			let noop = () => {}
 
-		for (var func in oneOffList) {
+			func.hasOwnProperty('recurring') ?
+				noop = () => {
+					const newDate = new Date();
+					newDate.setSeconds(newDate.getSeconds() + func.recurring);
+					redular.scheduleEvent(func.name, newDate);
+				} :
+				noop
 
-			redular.defineHandler(oneOffList[func].key, () => {
-				faas.invoke(oneOffList[func].key)
-					.then(x => console.log(x.body))
-					.catch(err => console.log(err))
-			})
-
-			redular.scheduleEvent(
-				oneOffList[func].key,
-				date.setSeconds(date.getSeconds() + oneOffList[func].initialRun)
-			)
-		}
-	}
-
-	const scheduleRecurring = (recurringList) => {
-		const date = new Date()
-
-		for (var func in recurringList) {
-
-			redular.defineHandler(recurringList[func].key, () => {
-				faas.invoke(recurringList[func].key, recurringList[func].data)
-					.then(x => console.log(x.body))
-					.then(() => {
-						date.setSeconds(date.getSeconds() + recurringList[func].recurring);
-						redular.scheduleEvent(recurringList[func].key, date);
-					})
-					.catch(err => console.log(err))
-			})
+			redular.defineHandler(func.name, () => {
+				invoke(func.name, func.data)
+					.then(func.onFinished)
+					.then(noop)
+					.catch(err => console.log(err));
+			});
 
 			redular.scheduleEvent(
-				recurringList[func].key,
-				date.setSeconds(date.getSeconds() + recurringList[func].initialRun)
-			)
-		}
-	}
-	scheduleOneOff(oneOff)
-	scheduleRecurring(recurring)
+				func.name,
+				date.setSeconds(date.getSeconds() + func.initialRun)
+			);
+		});
+	};
+
+	const scheduleSingles = list => {
+		invokeFuncs(list)
+			.then(() => console.log('scheduled'))
+			.catch(err => console.log(err));
+	};
+
+	const schedulePipes = list => {
+		const date = new Date();
+
+		list.forEach(pipe => {
+			redular.defineHandler(pipe.name, () => {
+				compose(pipe.data, pipe.pipeline)
+					.then(pipe.onFinished)
+					.catch(err => console.log(err));
+			});
+
+			redular.scheduleEvent(
+				pipe.name,
+				date.setSeconds(date.getSeconds() + pipe.initialRun)
+			);
+		});
+	};
+
+	scheduleSingles(single);
+	schedulePipes(pipe);
 
 	console.log('starting');
+};
 
-}
-
-module.exports = skej
+module.exports = skej;

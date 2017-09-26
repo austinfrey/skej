@@ -77,6 +77,9 @@ should be passed to the first function, and list the function names under
 		}
 	]
 }
+
+// wrap schedule in the skej() function
+skej(schedule)
 ```
 See the `example.js` file for the completed description.
 

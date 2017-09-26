@@ -7,7 +7,6 @@ const BbPromise = require('bluebird');
 const skej = schedule => {
 	const {invoke, compose} = FaaS('http://localhost:8080');
 	const {single, pipe} = schedule;
-
 	const options = {
 		autoconfig: true,
 		redis: {
@@ -20,8 +19,8 @@ const skej = schedule => {
 
 	const invokeFuncs = list => {
 		return new BbPromise.each(list, func => {
-		  const date = new Date();
-			let noop;
+			const date = new Date();
+			const noop;
 
 			func.hasOwnProperty('recurring') ?
 				noop = () => {

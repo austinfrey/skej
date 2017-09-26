@@ -1,7 +1,7 @@
 {
   "name": "skej",
   "version": "0.0.1",
-  "description": "OpenFaaS function scheduler",
+  "description": "OpenFaaS function scheduler, backed by Redis",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,6 +9,7 @@
   "author": "Austin Frey",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "openfaas": "0.0.1",
     "redular": "^1.2.0"
   },

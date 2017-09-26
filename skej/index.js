@@ -2,9 +2,10 @@
 
 const FaaS = require('openfaas');
 const Redular = require('redular');
-const BbPromise = require('bluebird')
+const BbPromise = require('bluebird');
 
 const skej = schedule => {
+	const {invoke, compose} = FaaS('http://localhost:8080');
 	const {single, pipe} = schedule;
 
 	const options = {
@@ -15,21 +16,20 @@ const skej = schedule => {
 		}
 	};
 
-	const {invoke, compose} = FaaS('http://localhost:8080');
 	const redular = new Redular(options);
 
-	const invokeFuncs = (list) => {
+	const invokeFuncs = list => {
 		return new BbPromise.each(list, func => {
-		  const date = new Date()
-			var noop
+		  const date = new Date();
+			let noop;
 
-			func.hasOwnProperty('recurring')
-				? noop = () => {
-						const newDate = new Date()
-						newDate.setSeconds(newDate.getSeconds() + func.recurring);
-						redular.scheduleEvent(func.name, newDate);
-				}
-				: noop = () => {}
+			func.hasOwnProperty('recurring') ?
+				noop = () => {
+					const newDate = new Date();
+					newDate.setSeconds(newDate.getSeconds() + func.recurring);
+					redular.scheduleEvent(func.name, newDate);
+				} :
+				noop = () => {};
 
 			redular.defineHandler(func.name, () => {
 				invoke(func.name, func.data)
@@ -42,17 +42,13 @@ const skej = schedule => {
 				func.name,
 				date.setSeconds(date.getSeconds() + func.initialRun)
 			);
-		})
-	}
-
-	const scheduleOneOff = list => {
-		invokeFuncs(list)
-			.then(() => console.log('scheduled'))
-			.catch(err => console.log(err))
+		});
 	};
 
-	const scheduleRecurring = list => {
+	const scheduleSingles = list => {
 		invokeFuncs(list)
+			.then(() => console.log('scheduled'))
+			.catch(err => console.log(err));
 	};
 
 	const schedulePipes = list => {
@@ -72,11 +68,10 @@ const skej = schedule => {
 		});
 	};
 
-	scheduleOneOff(single);
+	scheduleSingles(single);
 	schedulePipes(pipe);
 
 	console.log('starting');
 };
-
 
 module.exports = skej;

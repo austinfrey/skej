@@ -36,13 +36,12 @@ skej({
 			data: '',
 			json: false,
 			initialRun: 8,
-			recurring: 60,
 			pipeline: [
 				'func_nodeinfo',
 				'func_wordcount'
 			],
 			onFinished: x => console.log(x.body)
-		}
+		},
 	]
 
 });

@@ -20,7 +20,7 @@ const skej = schedule => {
 	const invokeFuncs = list => {
 		return new BbPromise.each(list, func => {
 			const date = new Date();
-			const noop;
+			let noop = () => {}
 
 			func.hasOwnProperty('recurring') ?
 				noop = () => {
@@ -28,7 +28,7 @@ const skej = schedule => {
 					newDate.setSeconds(newDate.getSeconds() + func.recurring);
 					redular.scheduleEvent(func.name, newDate);
 				} :
-				noop = () => {};
+				noop
 
 			redular.defineHandler(func.name, () => {
 				invoke(func.name, func.data)

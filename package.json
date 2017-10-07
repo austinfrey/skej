@@ -10,8 +10,9 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "openfaas": "0.0.1",
     "redular": "^1.2.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "openfaas": "0.0.4"
+  }
 }

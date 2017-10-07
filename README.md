@@ -36,15 +36,12 @@ const schedule = {
 	single: [
 		{
 			name: 'func_nodeinfo',
-			data: null,
-			json: false,
 			initialRun: 5,
 			onFinished: x => console.log(x.body)
 		},
 		{
 			name: 'func_echoit',
 			data: 'hello world',
-			json: false,
 			initialRun: 2,
 			recurring: 10,
 			onFinished: x => console.log(x.body)
@@ -67,7 +64,6 @@ should be passed to the first function, and list the function names under
 		{
 			name: 'test',
 			data: '',
-			json: false,
 			initialRun: 8,
 			pipeline: [
 				'func_nodeinfo',

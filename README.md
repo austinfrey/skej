@@ -14,7 +14,7 @@ Redis should be running on port 6379. This is easy to do with docker
 docker run -d -p 6379:6379 redis
 ```
 
-`skej` will try to autoconfigure redis to support ewxpiring keys, but you may need to use `redis-cli` if it doesn't cooperate.
+`skej` will try to autoconfigure redis to support expiring keys, but you may need to use `redis-cli` if it doesn't cooperate.
 ```
 $ redis-cli
 > config set notify-keyspace-events Ex
